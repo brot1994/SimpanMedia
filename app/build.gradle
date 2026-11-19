@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'id.bram.simpanmedia'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "id.bram.simpanmedia"
+        minSdk 29
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore/release.jks")
+            storePassword "simpanmedia"
+            keyAlias "simpanmedia"
+            keyPassword "simpanmedia"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    def ydl = "0.18.1"
+    implementation "io.github.junkfood02.youtubedl-android:library:$ydl"
+    implementation "io.github.junkfood02.youtubedl-android:ffmpeg:$ydl"
+}

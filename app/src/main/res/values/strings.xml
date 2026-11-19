@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simpan Media</string>
+    <string name="share_label">Simpan Media</string>
+
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#4F8CFF</item>
+        <item name="android:colorAccent">#4F8CFF</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/card</item>
+    </style>
+
+    <style name="Translucent" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:colorAccent">#4F8CFF</item>
+    </style>
+</resources>
