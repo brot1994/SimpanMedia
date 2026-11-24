@@ -225,11 +225,8 @@ public class DownloadService extends Service {
     private int webGrab(Jobs.Job j, String url, Platform p, String cookies, String host) {
         java.util.regex.Matcher m = java.util.regex.Pattern
                 .compile("/(?:post|p|reel|reels|tv)/([A-Za-z0-9_-]+)").matcher(url);
-        if (!m.find()) {
-            lastNote = "kode postingan tidak ada di link";
-            return 0;
-        }
-        String code = m.group(1);
+        // Link share (tanpa kode) tetap dibuka: browser akan diarahkan ke postingan aslinya.
+        String code = m.find() ? m.group(1) : "";
         updateFg(j, -1, "Membuka halaman " + p.label + "…");
         try {
             String page = url;

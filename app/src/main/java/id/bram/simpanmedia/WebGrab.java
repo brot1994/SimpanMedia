@@ -34,6 +34,8 @@ final class WebGrab {
 
     private static final String JS =
             "(function(code){"
+            + "if(!code){var mm=location.pathname.match(/\\/(?:post|p|reel|reels|tv)\\/([A-Za-z0-9_-]+)/);"
+            + " if(!mm)return JSON.stringify({n:0,items:[],title:document.title,url:location.href});code=mm[1];}"
             + "function walk(o,out,d){if(!o||typeof o!=='object'||d>80||out.length)return;"
             + " if(Array.isArray(o)){for(var i=0;i<o.length;i++)walk(o[i],out,d+1);return;}"
             + " if(o.code===code&&(o.image_versions2||o.video_versions||o.carousel_media)){out.push(o);return;}"
@@ -136,7 +138,7 @@ final class WebGrab {
                     if (v instanceof String) {
                         JSONObject o = new JSONObject((String) v);
                         JSONArray items = o.optJSONArray("items");
-                        res.note = "skrip=" + o.optInt("n") + " judul=\"" + o.optString("title") + "\"";
+                        res.note = "skrip=" + o.optInt("n") + " judul=\"" + o.optString("title") + "\" alamat=" + o.optString("url");
                         if (items != null && items.length() > 0) {
                             for (int i = 0; i < items.length(); i++) {
                                 JSONObject it = items.getJSONObject(i);

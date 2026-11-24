@@ -75,13 +75,33 @@ final class Http {
 
     /** Link pendek / share → link akhir. */
     static String resolve(String url) {
-        try {
-            HttpURLConnection c = open(url, null);
-            String f = c.getURL().toString();
-            c.disconnect();
-            return f;
-        } catch (Exception e) {
-            return url;
+        String f = url;
+        for (String ua : new String[]{UA_DESKTOP, UA_MOBILE}) {
+            try {
+                java.util.Map<String, String> h = new java.util.HashMap<>();
+                h.put("User-Agent", ua);
+                HttpURLConnection c = open(url, h);
+                f = c.getURL().toString();
+                if (!f.contains("/share/") || !f.contains("threads.")) {
+                    c.disconnect();
+                    return f;
+                }
+                // Threads kadang tidak redirect, tapi menulis alamat asli di dalam halaman.
+                String html;
+                try (java.io.InputStream in = c.getInputStream()) {
+                    byte[] b = new byte[1 << 20];
+                    int n, tot = 0;
+                    while (tot < b.length && (n = in.read(b, tot, b.length - tot)) > 0) tot += n;
+                    html = new String(b, 0, tot, StandardCharsets.UTF_8);
+                } finally {
+                    c.disconnect();
+                }
+                java.util.regex.Matcher m = java.util.regex.Pattern
+                        .compile("/@([A-Za-z0-9_.]+)/post/([A-Za-z0-9_-]+)").matcher(html.replace("\\/", "/"));
+                if (m.find()) return "https://www.threads.com/@" + m.group(1) + "/post/" + m.group(2);
+            } catch (Exception ignored) {
+            }
         }
+        return f;
     }
 }
