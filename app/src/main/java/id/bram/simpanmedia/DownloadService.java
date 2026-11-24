@@ -176,15 +176,30 @@ public class DownloadService extends Service {
         } catch (Exception e) {
             last = e;
         }
+        if (items.isEmpty() && p == Platform.X) {
+            try {
+                items = Extract.twitterVx(url);
+            } catch (Exception e) {
+                if (last == null) last = e;
+            }
+        }
         int saved = 0;
         if (!items.isEmpty()) saved = downloadItems(j, items, p);
 
-        if (saved == 0) {
+        // Threads: yt-dlp tidak mendukung → langsung pakai browser tersembunyi.
+        if (saved == 0 && p == Platform.THREADS) {
+            saved = webGrab(j, url, p, cookies, "www.threads.com");
+            if (saved == 0) last = new Exception("Threads: postingan tidak terbaca (" + lastNote + ")");
+        }
+        if (saved == 0 && p != Platform.THREADS) {
             try {
                 saved = ytdlp(j, url, p, cookies);
             } catch (Exception e) {
                 last = e;
             }
+        }
+        if (saved == 0 && p == Platform.INSTAGRAM) {
+            saved = webGrab(j, url, p, cookies, "www.instagram.com");
         }
         if (saved == 0) {
             try {
@@ -197,12 +212,36 @@ public class DownloadService extends Service {
         if (saved == 0) {
             String why = last != null ? shortErr(last) : "Media tidak ditemukan";
             if (cookies == null && p.canLogin() && (why.contains("login") || why.contains("HTTP 4")
-                    || why.contains("private") || why.contains("tidak ditemukan") || why.contains("not")))
+                    || why.contains("private") || p == Platform.THREADS || why.contains("tidak ditemukan") || why.contains("not")))
                 why += "\nCoba login " + p.label + " di tab Akun.";
             Jobs.finish(j, Jobs.ERR, why);
             return;
         }
         Jobs.finish(j, Jobs.OK, saved + " file tersimpan");
+    }
+
+    private volatile String lastNote = "";
+
+    private int webGrab(Jobs.Job j, String url, Platform p, String cookies, String host) {
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("/(?:post|p|reel|reels|tv)/([A-Za-z0-9_-]+)").matcher(url);
+        if (!m.find()) {
+            lastNote = "kode postingan tidak ada di link";
+            return 0;
+        }
+        String code = m.group(1);
+        updateFg(j, -1, "Membuka halaman " + p.label + "…");
+        try {
+            String page = url;
+            if (p == Platform.THREADS) page = url.replace("threads.net", "threads.com");
+            WebGrab.Result r = WebGrab.run(this, page, code, cookies, host, 25000);
+            lastNote = r.note;
+            if (r.items.isEmpty()) return 0;
+            return downloadItems(j, r.items, p);
+        } catch (Exception e) {
+            lastNote = String.valueOf(e.getMessage());
+            return 0;
+        }
     }
 
     private int downloadItems(Jobs.Job j, List<Extract.Item> items, Platform p) {

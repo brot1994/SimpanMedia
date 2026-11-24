@@ -230,6 +230,27 @@ final class Extract {
         return out;
     }
 
+    /** Cadangan kedua untuk X: layanan publik vxTwitter. */
+    static List<Item> twitterVx(String url) throws Exception {
+        List<Item> out = new ArrayList<>();
+        Matcher m = Pattern.compile("/status(?:es)?/(\\d+)").matcher(url);
+        if (!m.find()) return out;
+        JSONObject o = new JSONObject(Http.text("https://api.vxtwitter.com/Twitter/status/" + m.group(1), null));
+        JSONArray me = o.optJSONArray("media_extended");
+        if (me != null) {
+            for (int i = 0; i < me.length(); i++) {
+                JSONObject x = me.optJSONObject(i);
+                if (x == null) continue;
+                String u = x.optString("url", "");
+                if (u.isEmpty()) continue;
+                boolean img = "image".equals(x.optString("type"));
+                if (img && u.contains("pbs.twimg.com/media") && !u.contains("?")) u += "?name=orig";
+                out.add(new Item(u, !img));
+            }
+        }
+        return out;
+    }
+
     // ---------------- Cadangan: meta og: ----------------
 
     private static final Pattern OG1 = Pattern.compile(
